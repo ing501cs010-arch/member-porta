@@ -1,81 +1,163 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ING CORE | Member Analytics Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0b0e14; color: #f1f1f1; }
+        .glass { background: rgba(17, 25, 40, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
 
-<div id="analyticsArea" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-    <div class="glass p-4 rounded-2xl border-b-4 border-green-500 text-center">
-        <p class="text-xs text-gray-400">TOTAL DEPOSIT</p>
-        <h3 id="sumDeposit" class="text-xl font-bold text-green-400">0</h3>
-    </div>
-    <div class="glass p-4 rounded-2xl border-b-4 border-red-500 text-center">
-        <p class="text-xs text-gray-400">TOTAL WITHDRAW</p>
-        <h3 id="sumWithdraw" class="text-xl font-bold text-red-400">0</h3>
-    </div>
-    <div class="glass p-4 rounded-2xl border-b-4 border-yellow-500 text-center">
-        <p class="text-xs text-gray-400">TOTAL BONUS</p>
-        <h3 id="sumBonus" class="text-xl font-bold text-yellow-400">0</h3>
-    </div>
-    <div class="glass p-4 rounded-2xl border-b-4 border-blue-500 text-center">
-        <p class="text-xs text-gray-400">NET PROFIT</p>
-        <h3 id="sumNet" class="text-xl font-bold text-blue-400">0</h3>
-    </div>
-</div>
+    <nav class="p-6 glass sticky top-0 z-50 mb-8">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                <i class="fas fa-shield-halved mr-2"></i>ING CORE SYSTEM
+            </h1>
+            <div class="flex items-center text-xs text-gray-400">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> SYSTEM LIVE
+            </div>
+        </div>
+    </nav>
 
-<div id="chartContainer" class="hidden glass p-6 rounded-3xl mb-8">
-    <canvas id="memberChart" style="max-height: 300px;"></canvas>
-</div>
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="glass p-8 rounded-3xl shadow-2xl mb-8 border-t border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">Platform</label>
+                    <select id="type" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">
+                        <option value="ing">ING 501</option>
+                        <option value="queen">QUEEN</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">Member User ID</label>
+                    <div class="relative">
+                        <i class="fas fa-user-circle absolute left-4 top-4 text-gray-500"></i>
+                        <input type="text" id="memberId" placeholder="Enter ID (e.g. ingmm00968)" 
+                            class="w-full bg-gray-900 border border-gray-700 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="searchMember()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i> SEARCH NOW
+                    </button>
+                </div>
+            </div>
+        </div>
 
-<script>
-    let myChart = null; // Chart instance ကို သိမ်းရန်
+        <div id="summaryArea" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass p-6 rounded-2xl border-b-4 border-green-500 shadow-xl text-center">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Deposit</p>
+                <h3 id="totalDep" class="text-xl font-bold text-green-400 mt-1">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl border-b-4 border-red-500 shadow-xl text-center">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Withdraw</p>
+                <h3 id="totalWit" class="text-xl font-bold text-red-400 mt-1">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl border-b-4 border-yellow-500 shadow-xl text-center">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Bonus</p>
+                <h3 id="totalBon" class="text-xl font-bold text-yellow-400 mt-1">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl border-b-4 border-blue-500 shadow-xl text-center">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Net Profit</p>
+                <h3 id="netProfit" class="text-xl font-bold text-blue-100 mt-1">0</h3>
+            </div>
+        </div>
 
-    // Main Search Function ထဲမှာ ဒီ Logic တွေ ထည့်ပါမယ်
-    async function searchMember() {
-        // ... (fetch logic) ...
-        
-        if (res.status === "success" && res.data.length > 0) {
-            calculateAnalytics(res.data); // Logic အသစ်
-            renderChart(res.data);       // Chart ဆွဲရန်
-            // ... (render cards) ...
+        <div id="loading" class="hidden flex flex-col items-center py-20">
+            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 text-gray-500 text-sm">Accessing Google Sheets Database...</p>
+        </div>
+
+        <div id="resultArea" class="grid gap-4">
+            </div>
+    </div>
+
+    <script>
+        // Updated Web App URL
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4AwyDYP_xMbWDCskLz5WZ3ftnYs7Yvma0hv9XP6g590uE3PHWF_De-Gpa3CKkUubO/exec";
+
+        async function searchMember() {
+            const id = document.getElementById('memberId').value.trim();
+            const type = document.getElementById('type').value;
+            const resultArea = document.getElementById('resultArea');
+            const summaryArea = document.getElementById('summaryArea');
+            const loading = document.getElementById('loading');
+
+            if (!id) return alert("Please enter a Member ID");
+
+            resultArea.innerHTML = "";
+            summaryArea.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?id=${id}&type=${type}`);
+                const res = await response.json();
+                loading.classList.add('hidden');
+
+                if (res.status === "success" && res.data.length > 0) {
+                    processAnalytics(res.data);
+                    renderResults(res.data);
+                } else {
+                    resultArea.innerHTML = `<div class="text-center py-20 glass rounded-3xl text-gray-500 italic">No records found for ID: ${id}</div>`;
+                }
+            } catch (error) {
+                loading.classList.add('hidden');
+                alert("Connection Error. Ensure your GAS is deployed as 'Anyone'.");
+            }
         }
-    }
 
-    function calculateAnalytics(data) {
-        let totalDep = 0, totalWit = 0, totalBon = 0;
+        function processAnalytics(data) {
+            let dep = 0, wit = 0, bon = 0;
+            data.forEach(item => {
+                // Mapping Sheet columns to logic
+                dep += parseFloat(item.D_amount___ || 0);
+                wit += parseFloat(item.W_amount___ || 0);
+                bon += parseFloat(item.Total_unit_Bonus || 0);
+            });
 
-        data.forEach(item => {
-            // Header နာမည်တွေကို Sheet ထဲကအတိုင်း တိုက်စစ်ပါ
-            totalDep += parseFloat(item.Deposit || item.Deposit_plus_ || 0);
-            totalWit += parseFloat(item.Withdraw || item.Withdraw_minus_ || 0);
-            totalBon += parseFloat(item.Bonus || item.Total_Bonus || 0);
-        });
+            document.getElementById('totalDep').innerText = dep.toLocaleString();
+            document.getElementById('totalWit').innerText = wit.toLocaleString();
+            document.getElementById('totalBon').innerText = bon.toLocaleString();
+            document.getElementById('netProfit').innerText = (dep - wit).toLocaleString();
+            document.getElementById('summaryArea').classList.remove('hidden');
+        }
 
-        document.getElementById('sumDeposit').innerText = totalDep.toLocaleString();
-        document.getElementById('sumWithdraw').innerText = totalWit.toLocaleString();
-        document.getElementById('sumBonus').innerText = totalBon.toLocaleString();
-        document.getElementById('sumNet').innerText = (totalDep - totalWit).toLocaleString();
-        
-        document.getElementById('analyticsArea').classList.remove('hidden');
-    }
+        function renderResults(data) {
+            const container = document.getElementById('resultArea');
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "glass p-6 rounded-2xl border-l-4 border-blue-600 card-hover shadow-lg";
+                
+                let html = `<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">`;
+                for (let key in item) {
+                    const val = item[key] || '-';
+                    const label = key.replace(/_/g, ' ');
+                    
+                    // Error highlighting logic
+                    let valColor = "text-blue-100";
+                    if (val === '-' || val === 0 || val === "") valColor = "text-red-500 font-bold";
+                    if (label.toLowerCase().includes('amount') && val > 0) valColor = "text-green-400 font-bold";
 
-    function renderChart(data) {
-        const ctx = document.getElementById('memberChart').getContext('2d');
-        document.getElementById('chartContainer').classList.remove('hidden');
-
-        if (myChart) myChart.destroy(); // အဟောင်းရှိရင် ဖျက်ပါ
-
-        myChart = new Chart(ctx, {
-            type: 'bar', // သို့မဟုတ် 'doughnut' အကိုကြိုက်တာပြောင်းနိုင်ပါတယ်
-            data: {
-                labels: ['Deposit', 'Withdraw', 'Net Result'],
-                datasets: [{
-                    label: 'Member Analysis',
-                    data: [
-                        data.reduce((a, b) => a + (parseFloat(b.Deposit || b.Deposit_plus_) || 0), 0),
-                        data.reduce((a, b) => a + (parseFloat(b.Withdraw || b.Withdraw_minus_) || 0), 0),
-                        data.reduce((a, b) => a + (parseFloat(b.Deposit || b.Deposit_plus_) || 0), 0) - data.reduce((a, b) => a + (parseFloat(b.Withdraw || b.Withdraw_minus_) || 0), 0)
-                    ],
-                    backgroundColor: ['#10b981', '#ef4444', '#3b82f6']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-</script>
+                    html += `
+                        <div>
+                            <p class="text-[9px] text-gray-500 uppercase tracking-tighter font-bold">${label}</p>
+                            <p class="${valColor} truncate">${val}</p>
+                        </div>`;
+                }
+                html += `</div>`;
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
