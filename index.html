@@ -3,117 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ING 501 & QUEEN Member Portal</title>
+    <title>ING 501 & QUEEN Dashboard</title>
     <style>
-        :root { --queen-color: #1a237e; --ing-color: #1b5e20; }
-        body { font-family: 'Pyidaungsu', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .card { background: white; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); overflow: hidden; min-width: 450px; flex: 1; }
+        :root { --queen-blue: #1a237e; --ing-green: #1b5e20; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #eef2f3; margin: 0; padding: 20px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1400px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); flex: 1; min-width: 450px; overflow: hidden; }
         
-        /* Table Styling */
-        .table-wrapper { overflow-x: auto; padding: 15px; }
-        table { width: 100%; border-collapse: collapse; min-width: 400px; }
-        th { padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 14px; text-transform: uppercase; color: #666; }
-        td { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 15px; }
-        
-        /* Brand Headers */
-        .brand-header { padding: 20px; color: white; text-align: center; }
-        .bg-queen { background: var(--queen-color); }
-        .bg-ing { background: var(--ing-color); }
-        
-        /* Status Colors */
+        /* Table Design */
+        .header-box { padding: 15px; color: white; text-align: center; font-size: 1.5rem; font-weight: bold; }
+        .table-container { overflow-x: auto; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #f8f9fa; color: #333; padding: 12px; border-bottom: 2px solid #ddd; text-align: center; font-size: 13px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-size: 14px; }
+        td:first-child { text-align: left; font-weight: bold; }
+
+        /* Formatting Colors */
         .pos { color: #2e7d32; font-weight: bold; }
         .neg { color: #d32f2f; font-weight: bold; }
-        .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
+        .loading { text-align: center; margin-top: 50px; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Member Transaction Portal</h1>
-        <p>Real-time Data from Google Sheets</p>
-    </div>
-
-    <div id="loader" class="loading">ဒေတာများကို ဖတ်နေသည်... ခဏစောင့်ပါ...</div>
+    <h2 style="text-align:center; color: #333; margin-bottom: 30px;">Daily Transaction Report</h2>
+    
+    <div id="loader" class="loading">Data များကို ချိတ်ဆက်နေပါသည်...</div>
 
     <div class="container" id="main-content" style="display:none;">
         <div class="card">
-            <div class="brand-header bg-queen">
-                <h2 id="q-title">501 QUEEN</h2>
-            </div>
-            <div class="table-wrapper">
+            <div class="header-box" style="background: var(--queen-blue);">501 QUEEN</div>
+            <div class="table-container">
                 <table>
-                    <thead id="queen-head"></thead>
-                    <tbody id="queen-body"></tbody>
+                    <thead id="q-head"></thead>
+                    <tbody id="q-body"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <div class="brand-header bg-ing">
-                <h2 id="i-title">ING 501</h2>
-            </div>
-            <div class="table-wrapper">
+            <div class="header-box" style="background: var(--ing-green);">ING 501</div>
+            <div class="table-container">
                 <table>
-                    <thead id="ing-head"></thead>
-                    <tbody id="ing-body"></tbody>
+                    <thead id="i-head"></thead>
+                    <tbody id="i-body"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // *** မင်းရဲ့ Apps Script URL ကို ဒီနေရာမှာ အစားထိုးပါ ***
-        const scriptURL = 'ပြီးခဲ့တဲ့အဆင့်မှာရခဲ့တဲ့_WEB_APP_URL_ကိုဒီမှာထည့်ပါ';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz_HjYq4L470_m1q8O7Yf2oKjXp0S-rS6x_e9P2p6K0S8q2S7-2q-2x/exec'; // မင်းရဲ့ API URL
 
-        async function fetchData() {
+        async function loadDashboard() {
             try {
-                const response = await fetch(scriptURL);
-                const data = await response.json();
+                // မင်းပေးထားတဲ့ URL က macros/echo ဖြစ်နေရင် macros/s/.../exec ကို ပြောင်းသုံးဖို့ လိုတတ်ပါတယ်
+                const finalURL = scriptURL; 
                 
+                const response = await fetch(finalURL);
+                const data = await response.json();
+
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('main-content').style.display = 'flex';
 
-                renderTable(data.queenHeader, data.queenData, 'queen-head', 'queen-body');
-                renderTable(data.ingHeader, data.ingData, 'ing-head', 'ing-body');
+                fillTable(data.queenHeader, data.queenData, 'q-head', 'q-body');
+                fillTable(data.ingHeader, data.ingData, 'i-head', 'i-body');
 
-            } catch (error) {
-                document.getElementById('loader').innerHTML = "Error: ဒေတာဖတ်ရတာ အဆင်မပြေပါ (URL ကို စစ်ဆေးပါ)";
-                console.error('Error!', error);
+            } catch (err) {
+                document.getElementById('loader').innerHTML = "Error: Data ဖတ်မရပါ။ Apps Script မှာ 'Anyone' access ပေးထားလား စစ်ဆေးပါ။";
             }
         }
 
-        function renderTable(headers, rows, headId, bodyId) {
-            const head = document.getElementById(headId);
-            const body = document.getElementById(bodyId);
+        function fillTable(headers, rows, headId, bodyId) {
+            const hElem = document.getElementById(headId);
+            const bElem = document.getElementById(bodyId);
 
-            // Header Render
-            head.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            hElem.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
 
-            // Rows Render
-            body.innerHTML = rows.map(row => {
-                return `<tr>${row.map((cell, index) => {
-                    let displayValue = cell;
-                    
-                    // ဂဏန်းဖြစ်ရင် ကော်မာထည့်မယ်
+            bElem.innerHTML = rows.map(row => {
+                return `<tr>${row.map((cell, idx) => {
+                    let val = cell;
+                    let styleClass = "";
+
+                    // Number format and Income color
                     if (typeof cell === 'number') {
-                        displayValue = cell.toLocaleString();
-                        const style = cell < 0 ? 'class="neg"' : (index === row.length - 1 ? 'class="pos"' : '');
-                        return `<td ${style}>${displayValue}</td>`;
+                        val = cell.toLocaleString();
+                        if (idx === row.length - 1) { // Today Income column
+                            styleClass = cell >= 0 ? 'class="pos"' : 'class="neg"';
+                        }
                     }
-                    
-                    // ရက်စွဲ Format ပြင်မယ်
-                    if (index === 0 && cell) {
-                        displayValue = new Date(cell).toLocaleDateString('en-GB');
+                    // Date format
+                    if (idx === 0 && cell) {
+                        val = new Date(cell).toLocaleDateString('en-GB');
                     }
-                    
-                    return `<td>${displayValue}</td>`;
+
+                    return `<td ${styleClass}>${val}</td>`;
                 }).join('')}</tr>`;
             }).join('');
         }
 
-        fetchData();
+        loadDashboard();
     </script>
 </body>
 </html>
