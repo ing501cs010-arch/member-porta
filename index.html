@@ -1,163 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ING CORE | Member Analytics Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>ING 501 & QUEEN Member Portal</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0b0e14; color: #f1f1f1; }
-        .glass { background: rgba(17, 25, 40, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.5); }
+        :root { --queen-color: #1a237e; --ing-color: #1b5e20; }
+        body { font-family: 'Pyidaungsu', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .card { background: white; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); overflow: hidden; min-width: 450px; flex: 1; }
+        
+        /* Table Styling */
+        .table-wrapper { overflow-x: auto; padding: 15px; }
+        table { width: 100%; border-collapse: collapse; min-width: 400px; }
+        th { padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 14px; text-transform: uppercase; color: #666; }
+        td { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 15px; }
+        
+        /* Brand Headers */
+        .brand-header { padding: 20px; color: white; text-align: center; }
+        .bg-queen { background: var(--queen-color); }
+        .bg-ing { background: var(--ing-color); }
+        
+        /* Status Colors */
+        .pos { color: #2e7d32; font-weight: bold; }
+        .neg { color: #d32f2f; font-weight: bold; }
+        .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body>
 
-    <nav class="p-6 glass sticky top-0 z-50 mb-8">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                <i class="fas fa-shield-halved mr-2"></i>ING CORE SYSTEM
-            </h1>
-            <div class="flex items-center text-xs text-gray-400">
-                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> SYSTEM LIVE
+    <div class="header">
+        <h1>Member Transaction Portal</h1>
+        <p>Real-time Data from Google Sheets</p>
+    </div>
+
+    <div id="loader" class="loading">ဒေတာများကို ဖတ်နေသည်... ခဏစောင့်ပါ...</div>
+
+    <div class="container" id="main-content" style="display:none;">
+        <div class="card">
+            <div class="brand-header bg-queen">
+                <h2 id="q-title">501 QUEEN</h2>
             </div>
-        </div>
-    </nav>
-
-    <div class="max-w-6xl mx-auto px-4">
-        <div class="glass p-8 rounded-3xl shadow-2xl mb-8 border-t border-gray-700">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">Platform</label>
-                    <select id="type" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">
-                        <option value="ing">ING 501</option>
-                        <option value="queen">QUEEN</option>
-                    </select>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">Member User ID</label>
-                    <div class="relative">
-                        <i class="fas fa-user-circle absolute left-4 top-4 text-gray-500"></i>
-                        <input type="text" id="memberId" placeholder="Enter ID (e.g. ingmm00968)" 
-                            class="w-full bg-gray-900 border border-gray-700 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">
-                    </div>
-                </div>
-                <div class="flex items-end">
-                    <button onclick="searchMember()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-search"></i> SEARCH NOW
-                    </button>
-                </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead id="queen-head"></thead>
+                    <tbody id="queen-body"></tbody>
+                </table>
             </div>
         </div>
 
-        <div id="summaryArea" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="glass p-6 rounded-2xl border-b-4 border-green-500 shadow-xl text-center">
-                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Deposit</p>
-                <h3 id="totalDep" class="text-xl font-bold text-green-400 mt-1">0</h3>
+        <div class="card">
+            <div class="brand-header bg-ing">
+                <h2 id="i-title">ING 501</h2>
             </div>
-            <div class="glass p-6 rounded-2xl border-b-4 border-red-500 shadow-xl text-center">
-                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Withdraw</p>
-                <h3 id="totalWit" class="text-xl font-bold text-red-400 mt-1">0</h3>
-            </div>
-            <div class="glass p-6 rounded-2xl border-b-4 border-yellow-500 shadow-xl text-center">
-                <p class="text-[10px] text-gray-500 uppercase font-bold">Total Bonus</p>
-                <h3 id="totalBon" class="text-xl font-bold text-yellow-400 mt-1">0</h3>
-            </div>
-            <div class="glass p-6 rounded-2xl border-b-4 border-blue-500 shadow-xl text-center">
-                <p class="text-[10px] text-gray-500 uppercase font-bold">Net Profit</p>
-                <h3 id="netProfit" class="text-xl font-bold text-blue-100 mt-1">0</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead id="ing-head"></thead>
+                    <tbody id="ing-body"></tbody>
+                </table>
             </div>
         </div>
-
-        <div id="loading" class="hidden flex flex-col items-center py-20">
-            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="mt-4 text-gray-500 text-sm">Accessing Google Sheets Database...</p>
-        </div>
-
-        <div id="resultArea" class="grid gap-4">
-            </div>
     </div>
 
     <script>
-        // Updated Web App URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4AwyDYP_xMbWDCskLz5WZ3ftnYs7Yvma0hv9XP6g590uE3PHWF_De-Gpa3CKkUubO/exec";
+        // *** မင်းရဲ့ Apps Script URL ကို ဒီနေရာမှာ အစားထိုးပါ ***
+        const scriptURL = 'ပြီးခဲ့တဲ့အဆင့်မှာရခဲ့တဲ့_WEB_APP_URL_ကိုဒီမှာထည့်ပါ';
 
-        async function searchMember() {
-            const id = document.getElementById('memberId').value.trim();
-            const type = document.getElementById('type').value;
-            const resultArea = document.getElementById('resultArea');
-            const summaryArea = document.getElementById('summaryArea');
-            const loading = document.getElementById('loading');
-
-            if (!id) return alert("Please enter a Member ID");
-
-            resultArea.innerHTML = "";
-            summaryArea.classList.add('hidden');
-            loading.classList.remove('hidden');
-
+        async function fetchData() {
             try {
-                const response = await fetch(`${WEB_APP_URL}?id=${id}&type=${type}`);
-                const res = await response.json();
-                loading.classList.add('hidden');
+                const response = await fetch(scriptURL);
+                const data = await response.json();
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('main-content').style.display = 'flex';
 
-                if (res.status === "success" && res.data.length > 0) {
-                    processAnalytics(res.data);
-                    renderResults(res.data);
-                } else {
-                    resultArea.innerHTML = `<div class="text-center py-20 glass rounded-3xl text-gray-500 italic">No records found for ID: ${id}</div>`;
-                }
+                renderTable(data.queenHeader, data.queenData, 'queen-head', 'queen-body');
+                renderTable(data.ingHeader, data.ingData, 'ing-head', 'ing-body');
+
             } catch (error) {
-                loading.classList.add('hidden');
-                alert("Connection Error. Ensure your GAS is deployed as 'Anyone'.");
+                document.getElementById('loader').innerHTML = "Error: ဒေတာဖတ်ရတာ အဆင်မပြေပါ (URL ကို စစ်ဆေးပါ)";
+                console.error('Error!', error);
             }
         }
 
-        function processAnalytics(data) {
-            let dep = 0, wit = 0, bon = 0;
-            data.forEach(item => {
-                // Mapping Sheet columns to logic
-                dep += parseFloat(item.D_amount___ || 0);
-                wit += parseFloat(item.W_amount___ || 0);
-                bon += parseFloat(item.Total_unit_Bonus || 0);
-            });
+        function renderTable(headers, rows, headId, bodyId) {
+            const head = document.getElementById(headId);
+            const body = document.getElementById(bodyId);
 
-            document.getElementById('totalDep').innerText = dep.toLocaleString();
-            document.getElementById('totalWit').innerText = wit.toLocaleString();
-            document.getElementById('totalBon').innerText = bon.toLocaleString();
-            document.getElementById('netProfit').innerText = (dep - wit).toLocaleString();
-            document.getElementById('summaryArea').classList.remove('hidden');
-        }
+            // Header Render
+            head.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
 
-        function renderResults(data) {
-            const container = document.getElementById('resultArea');
-            data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "glass p-6 rounded-2xl border-l-4 border-blue-600 card-hover shadow-lg";
-                
-                let html = `<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">`;
-                for (let key in item) {
-                    const val = item[key] || '-';
-                    const label = key.replace(/_/g, ' ');
+            // Rows Render
+            body.innerHTML = rows.map(row => {
+                return `<tr>${row.map((cell, index) => {
+                    let displayValue = cell;
                     
-                    // Error highlighting logic
-                    let valColor = "text-blue-100";
-                    if (val === '-' || val === 0 || val === "") valColor = "text-red-500 font-bold";
-                    if (label.toLowerCase().includes('amount') && val > 0) valColor = "text-green-400 font-bold";
-
-                    html += `
-                        <div>
-                            <p class="text-[9px] text-gray-500 uppercase tracking-tighter font-bold">${label}</p>
-                            <p class="${valColor} truncate">${val}</p>
-                        </div>`;
-                }
-                html += `</div>`;
-                card.innerHTML = html;
-                container.appendChild(card);
-            });
+                    // ဂဏန်းဖြစ်ရင် ကော်မာထည့်မယ်
+                    if (typeof cell === 'number') {
+                        displayValue = cell.toLocaleString();
+                        const style = cell < 0 ? 'class="neg"' : (index === row.length - 1 ? 'class="pos"' : '');
+                        return `<td ${style}>${displayValue}</td>`;
+                    }
+                    
+                    // ရက်စွဲ Format ပြင်မယ်
+                    if (index === 0 && cell) {
+                        displayValue = new Date(cell).toLocaleDateString('en-GB');
+                    }
+                    
+                    return `<td>${displayValue}</td>`;
+                }).join('')}</tr>`;
+            }).join('');
         }
+
+        fetchData();
     </script>
 </body>
 </html>
